@@ -171,6 +171,8 @@ class CacheFlowWorker:
         temperature = float(params.get("temperature", 1.0))
         max_new_tokens = min(int(params.get("max_new_tokens", 256)), 1024)
         stop_str = params.get("stop", None)
+        if stop_str == tokenizer.eos_token:
+            stop_str = None
 
         input_ids = tokenizer(context).input_ids
         max_src_len = self.context_len - max_new_tokens - 8

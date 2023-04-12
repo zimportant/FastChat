@@ -6,10 +6,11 @@ import requests
 import threading
 import time
 
-from fastchat.conversation import default_conversation
+from fastchat.conversation import get_default_conv_template, SeparatorStyle
 
 
 def main():
+    model_name = args.model_name
     if args.worker_address:
         worker_addr = args.worker_address
     else:
@@ -28,8 +29,9 @@ def main():
     if worker_addr == "":
         return
 
-    conv = default_conversation.copy()
+    conv = get_default_conv_template(model_name).copy()
     conv.append_message(conv.roles[0], "Tell me a story with more than 1000 words")
+    conv.append_message(conv.roles[1], None)
     prompt_template = conv.get_prompt()
     prompts = [prompt_template for _ in range(args.n_thread)]
 
@@ -53,7 +55,7 @@ def main():
         response = requests.post(thread_worker_addr + "/worker_generate_stream", headers=headers,
                                  json=ploads[i], stream=False)
         k = list(response.iter_lines(chunk_size=8192, decode_unicode=False, delimiter=b"\0"))
-        # print(k)
+        print(k)
         response_new_words = json.loads(k[-2].decode("utf-8"))["text"]
         error_code = json.loads(k[-2].decode("utf-8"))["error_code"]
         # print(f"=== Thread {i} ===, words: {1}, error code: {error_code}")
